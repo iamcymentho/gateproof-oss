@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "http://localhost:5202/"
+      "url": "http://127.0.0.1:5202/"
     }
   ],
   "paths": {
@@ -101,6 +101,58 @@
           },
           "404": {
             "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/verifications/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Verifications"
+        ],
+        "summary": "Cancel an open verification",
+        "description": "Nothing more is collected. Fires a verification.cancelled webhook.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificationView"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -265,6 +317,79 @@
         "responses": {
           "204": {
             "description": "No Content"
+          }
+        }
+      }
+    },
+    "/v1/settings/webhook": {
+      "get": {
+        "tags": [
+          "Settings"
+        ],
+        "summary": "Your webhook URL",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookSettings"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Settings"
+        ],
+        "summary": "Set your webhook URL",
+        "description": "Must resolve to public internet addresses; live requires https. Redirects are not followed.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetWebhookRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/settings/webhook/rotate-secret": {
+      "post": {
+        "tags": [
+          "Settings"
+        ],
+        "summary": "Replace your webhook signing secret",
+        "description": "Returns the new secret once. The old secret stops working immediately.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookSecretResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -536,6 +661,7 @@
           "latitude": {
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
             "type": [
+              "null",
               "number",
               "string"
             ],
@@ -544,6 +670,7 @@
           "longitude": {
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
             "type": [
+              "null",
               "number",
               "string"
             ],
@@ -865,9 +992,12 @@
           "status",
           "claimed_address",
           "customer_phone",
+          "customer_phone_last4",
           "created_at",
           "expires_at",
-          "completed_at"
+          "completed_at",
+          "anonymised_at",
+          "phone_confirmed_at"
         ],
         "type": "object",
         "properties": {
@@ -888,6 +1018,12 @@
             "type": "string"
           },
           "customer_phone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "customer_phone_last4": {
             "type": "string"
           },
           "created_at": {
@@ -899,6 +1035,20 @@
             "format": "date-time"
           },
           "completed_at": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "anonymised_at": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "phone_confirmed_at": {
             "type": [
               "null",
               "string"
@@ -966,6 +1116,20 @@
           }
         }
       },
+      "SetWebhookRequest": {
+        "required": [
+          "url"
+        ],
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "Verdict": {
         "enum": [
           "verified",
@@ -996,6 +1160,7 @@
           "created_at",
           "expires_at",
           "consented_at",
+          "phone_confirmed_at",
           "check_in_count",
           "next_check_in_opens_at",
           "has_gate_photo",
@@ -1040,6 +1205,13 @@
             "format": "date-time"
           },
           "consented_at": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "phone_confirmed_at": {
             "type": [
               "null",
               "string"
@@ -1127,6 +1299,35 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "WebhookSecretResponse": {
+        "required": [
+          "secret"
+        ],
+        "type": "object",
+        "properties": {
+          "secret": {
+            "type": "string"
+          }
+        }
+      },
+      "WebhookSettings": {
+        "required": [
+          "url",
+          "configured"
+        ],
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "configured": {
+            "type": "boolean"
           }
         }
       }
