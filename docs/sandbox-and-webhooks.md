@@ -31,6 +31,7 @@ GateProof sends a `POST` to your webhook URL when a verification finishes:
 |---|---|
 | `verification.completed` | A verdict is ready. |
 | `verification.expired` | The customer didn't finish before the link expired. |
+| `verification.cancelled` | You cancelled an open verification. |
 
 The body is an event wrapping the verification (see [examples/webhook-verification-completed.json](../examples/webhook-verification-completed.json)). Headers:
 

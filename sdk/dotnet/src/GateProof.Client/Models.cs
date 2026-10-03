@@ -29,6 +29,7 @@ public static class WebhookEventTypes
 {
     public const string VerificationCompleted = "verification.completed";
     public const string VerificationExpired = "verification.expired";
+    public const string VerificationCancelled = "verification.cancelled";
 }
 
 /// <param name="CustomerPhone">Nigerian mobile number, e.g. 08012345678 or +2348012345678.</param>

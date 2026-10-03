@@ -38,6 +38,7 @@ Authenticate with `Authorization: Bearer gp_test_…` (sandbox) or `gp_live_…`
 |---|---|---|
 | `POST` | `/v1/verifications` | Create. Send an `Idempotency-Key` header so retries never create duplicates. |
 | `GET` | `/v1/verifications/{id}` | Status, verdict, confidence, reason codes. |
+| `POST` | `/v1/verifications/{id}/cancel` | Cancel an open verification. |
 | `GET` | `/v1/verifications/{id}/evidence-pack` | Everything behind the verdict. |
 | `GET` | `/v1/verifications/{id}/files/{fileId}` | The gate photo or utility bill. |
 | `GET` `PUT` `DELETE` | `/v1/settings/nipost-key` | Your own NIPOST key for the environment you call from. |
