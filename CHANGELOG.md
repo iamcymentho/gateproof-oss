@@ -4,7 +4,7 @@
 
 ### Evidence pack schema (`gateproof.evidence-pack/v1`, before first publication)
 
-- Added `verification.customer_phone_last4` (always present) and `verification.anonymised_at`.
+- Added `verification.customer_phone_last4` (always present), `verification.anonymised_at` and `verification.phone_confirmed_at`.
 - `verification.customer_phone` and check-in `latitude`/`longitude` are now optional: they are omitted once a record is anonymised at the end of its retention period. The verdict, reasons, distances and times remain.
 
 ## 0.1.0

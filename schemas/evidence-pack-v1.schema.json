@@ -30,7 +30,8 @@
         "created_at": { "$ref": "#/$defs/timestamp" },
         "expires_at": { "$ref": "#/$defs/timestamp" },
         "completed_at": { "$ref": "#/$defs/timestamp" },
-        "anonymised_at": { "$ref": "#/$defs/timestamp", "description": "When personal details were removed at the end of the retention period." }
+        "anonymised_at": { "$ref": "#/$defs/timestamp", "description": "When personal details were removed at the end of the retention period." },
+        "phone_confirmed_at": { "$ref": "#/$defs/timestamp", "description": "When the customer confirmed their phone with a one-time code." }
       }
     },
     "consent": {
