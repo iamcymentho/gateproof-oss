@@ -1,0 +1,1143 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "GateProof lender API",
+    "description": "Proof of address for lenders. Authenticate with `Authorization: Bearer gp_test_…` (sandbox) or `gp_live_…` (live). JSON is snake_case. Webhooks are signed: see the GateProof-Signature header documentation in the README.",
+    "version": "v1"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5202/"
+    }
+  ],
+  "paths": {
+    "/v1/verifications": {
+      "post": {
+        "tags": [
+          "Verifications"
+        ],
+        "summary": "Create a verification",
+        "description": "Live: the customer is sent the link. Sandbox: the link is returned to you; test numbers 08000000001-4 finish instantly.",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVerificationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificationView"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificationView"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/verifications/{id}": {
+      "get": {
+        "tags": [
+          "Verifications"
+        ],
+        "summary": "Get a verification",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificationView"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/verifications/{id}/evidence-pack": {
+      "get": {
+        "tags": [
+          "Verifications"
+        ],
+        "summary": "Get the evidence pack",
+        "description": "Everything behind the verdict (schema gateproof.evidence-pack/v1). Each download is recorded in the audit trail.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvidencePack"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/verifications/{id}/files/{fileId}": {
+      "get": {
+        "tags": [
+          "Verifications"
+        ],
+        "summary": "Download a gate photo or utility bill",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Gone",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/settings/nipost-key": {
+      "get": {
+        "tags": [
+          "Settings"
+        ],
+        "summary": "Is a NIPOST key configured for this environment?",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NipostKeyStatus"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Settings"
+        ],
+        "summary": "Set your NIPOST key for this environment",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetNipostKeyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Settings"
+        ],
+        "summary": "Remove your NIPOST key for this environment",
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Confidence": {
+        "enum": [
+          "high",
+          "medium",
+          "low",
+          null
+        ]
+      },
+      "CreateVerificationRequest": {
+        "required": [
+          "customer_phone",
+          "claimed_address",
+          "external_ref"
+        ],
+        "type": "object",
+        "properties": {
+          "customer_phone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "claimed_address": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "external_ref": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "EvidenceKind": {
+        "enum": [
+          "gate_photo",
+          "utility_bill"
+        ]
+      },
+      "EvidencePack": {
+        "required": [
+          "schema",
+          "generated_at",
+          "environment",
+          "lender",
+          "verification",
+          "consent",
+          "home",
+          "check_ins",
+          "evidence",
+          "nipost",
+          "result",
+          "audit_trail",
+          "notes"
+        ],
+        "type": "object",
+        "properties": {
+          "schema": {
+            "type": "string"
+          },
+          "generated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "environment": {
+            "$ref": "#/components/schemas/GateProofEnvironment"
+          },
+          "lender": {
+            "$ref": "#/components/schemas/PackLender"
+          },
+          "verification": {
+            "$ref": "#/components/schemas/PackVerification"
+          },
+          "consent": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PackConsent"
+              }
+            ]
+          },
+          "home": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PackHome"
+              }
+            ]
+          },
+          "check_ins": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PackCheckIn"
+            }
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PackFile"
+            }
+          },
+          "nipost": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PackNipost"
+              }
+            ]
+          },
+          "result": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PackResult"
+              }
+            ]
+          },
+          "audit_trail": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PackAuditEntry"
+            }
+          },
+          "notes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "GateProofEnvironment": {
+        "enum": [
+          "sandbox",
+          "live"
+        ]
+      },
+      "HttpValidationProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "title": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "detail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "instance": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "errors": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "NipostCheckStatus": {
+        "enum": [
+          "found",
+          "no_building_nearby",
+          "unavailable",
+          "not_configured",
+          null
+        ]
+      },
+      "NipostKeyStatus": {
+        "required": [
+          "environment",
+          "configured"
+        ],
+        "type": "object",
+        "properties": {
+          "environment": {
+            "$ref": "#/components/schemas/GateProofEnvironment"
+          },
+          "configured": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PackAuditEntry": {
+        "required": [
+          "at",
+          "type",
+          "actor",
+          "detail"
+        ],
+        "type": "object",
+        "properties": {
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "type": {
+            "type": "string"
+          },
+          "actor": {
+            "type": "string"
+          },
+          "detail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PackCheckIn": {
+        "required": [
+          "at",
+          "latitude",
+          "longitude",
+          "accuracy_m",
+          "distance_to_home_m",
+          "same_device_as_first"
+        ],
+        "type": "object",
+        "properties": {
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "latitude": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "longitude": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "accuracy_m": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "distance_to_home_m": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "same_device_as_first": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PackConsent": {
+        "required": [
+          "version",
+          "given_at",
+          "ip_address",
+          "user_agent"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "string"
+          },
+          "given_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "ip_address": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "user_agent": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PackFile": {
+        "required": [
+          "id",
+          "kind",
+          "content_type",
+          "size_bytes",
+          "sha256",
+          "uploaded_at",
+          "captured_at",
+          "captured_latitude",
+          "captured_longitude",
+          "captured_distance_to_home_m",
+          "deleted_at",
+          "download_url"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/EvidenceKind"
+          },
+          "content_type": {
+            "type": "string"
+          },
+          "size_bytes": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "sha256": {
+            "type": "string"
+          },
+          "uploaded_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "captured_at": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "captured_latitude": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "captured_longitude": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "captured_distance_to_home_m": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "deleted_at": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "download_url": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PackHome": {
+        "required": [
+          "latitude",
+          "longitude",
+          "accuracy_m",
+          "description",
+          "captured_at"
+        ],
+        "type": "object",
+        "properties": {
+          "latitude": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "longitude": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "accuracy_m": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "captured_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PackLender": {
+        "required": [
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "PackNipost": {
+        "required": [
+          "status",
+          "checked_at",
+          "postcode",
+          "reverse_confidence",
+          "distance_m",
+          "valid",
+          "building_use",
+          "error_code",
+          "is_mock"
+        ],
+        "type": "object",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/NipostCheckStatus"
+          },
+          "checked_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "postcode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "reverse_confidence": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "distance_m": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "valid": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "building_use": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "error_code": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "is_mock": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PackReason": {
+        "required": [
+          "code",
+          "kind",
+          "severe",
+          "description"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ReasonKind"
+          },
+          "severe": {
+            "type": "boolean"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "PackResult": {
+        "required": [
+          "verdict",
+          "confidence",
+          "reasons"
+        ],
+        "type": "object",
+        "properties": {
+          "verdict": {
+            "$ref": "#/components/schemas/Verdict"
+          },
+          "confidence": {
+            "$ref": "#/components/schemas/Confidence"
+          },
+          "reasons": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PackReason"
+            }
+          }
+        }
+      },
+      "PackVerification": {
+        "required": [
+          "id",
+          "external_ref",
+          "status",
+          "claimed_address",
+          "customer_phone",
+          "created_at",
+          "expires_at",
+          "completed_at"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "external_ref": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/VerificationStatus"
+          },
+          "claimed_address": {
+            "type": "string"
+          },
+          "customer_phone": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completed_at": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "title": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "detail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "instance": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "ReasonKind": {
+        "enum": [
+          "positive",
+          "red_flag",
+          "info"
+        ]
+      },
+      "SetNipostKeyRequest": {
+        "required": [
+          "api_key"
+        ],
+        "type": "object",
+        "properties": {
+          "api_key": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "Verdict": {
+        "enum": [
+          "verified",
+          "needs_review",
+          "not_verified",
+          null
+        ]
+      },
+      "VerificationStatus": {
+        "enum": [
+          "created",
+          "link_sent",
+          "in_progress",
+          "submitted",
+          "completed",
+          "expired",
+          "cancelled"
+        ]
+      },
+      "VerificationView": {
+        "required": [
+          "id",
+          "environment",
+          "status",
+          "external_ref",
+          "claimed_address",
+          "customer_phone_last4",
+          "created_at",
+          "expires_at",
+          "consented_at",
+          "check_in_count",
+          "next_check_in_opens_at",
+          "has_gate_photo",
+          "has_utility_bill",
+          "nipost_status",
+          "nipost_postcode",
+          "verdict",
+          "confidence",
+          "reason_codes",
+          "completed_at"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "environment": {
+            "$ref": "#/components/schemas/GateProofEnvironment"
+          },
+          "status": {
+            "$ref": "#/components/schemas/VerificationStatus"
+          },
+          "external_ref": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "claimed_address": {
+            "type": "string"
+          },
+          "customer_phone_last4": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "consented_at": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "check_in_count": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "next_check_in_opens_at": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "has_gate_photo": {
+            "type": "boolean"
+          },
+          "has_utility_bill": {
+            "type": "boolean"
+          },
+          "nipost_status": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/NipostCheckStatus"
+              }
+            ]
+          },
+          "nipost_postcode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "verdict": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Verdict"
+              }
+            ]
+          },
+          "confidence": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Confidence"
+              }
+            ]
+          },
+          "reason_codes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "completed_at": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "link_url": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "object": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Verifications"
+    },
+    {
+      "name": "Settings"
+    }
+  ]
+}

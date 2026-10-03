@@ -1,0 +1,161 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "gateproof.evidence-pack/v1",
+  "title": "GateProof evidence pack, version 1",
+  "description": "Everything behind one address verification verdict. Objects are closed (additionalProperties: false): a new field means a new schema version. Optional values are omitted rather than null.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "generated_at", "environment", "lender", "verification", "check_ins", "evidence", "audit_trail", "notes"],
+  "properties": {
+    "schema": { "const": "gateproof.evidence-pack/v1" },
+    "generated_at": { "$ref": "#/$defs/timestamp" },
+    "environment": { "enum": ["sandbox", "live"] },
+    "lender": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": { "name": { "type": "string" } }
+    },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "status", "claimed_address", "customer_phone", "created_at", "expires_at"],
+      "properties": {
+        "id": { "$ref": "#/$defs/uuid" },
+        "external_ref": { "type": "string", "maxLength": 100 },
+        "status": { "enum": ["created", "link_sent", "in_progress", "submitted", "completed", "expired", "cancelled"] },
+        "claimed_address": { "type": "string", "maxLength": 500 },
+        "customer_phone": { "type": "string", "pattern": "^\\+234[789]\\d{9}$" },
+        "created_at": { "$ref": "#/$defs/timestamp" },
+        "expires_at": { "$ref": "#/$defs/timestamp" },
+        "completed_at": { "$ref": "#/$defs/timestamp" }
+      }
+    },
+    "consent": {
+      "description": "What the customer agreed to and when. Kept as evidence for auditors.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "given_at"],
+      "properties": {
+        "version": { "type": "string", "description": "Identifies the exact consent wording shown." },
+        "given_at": { "$ref": "#/$defs/timestamp" },
+        "ip_address": { "type": "string" },
+        "user_agent": { "type": "string" }
+      }
+    },
+    "home": {
+      "description": "The home pin, set by the customer while standing there.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["latitude", "longitude", "accuracy_m", "captured_at"],
+      "properties": {
+        "latitude": { "$ref": "#/$defs/latitude" },
+        "longitude": { "$ref": "#/$defs/longitude" },
+        "accuracy_m": { "type": "number", "minimum": 0 },
+        "description": { "type": "string", "maxLength": 500 },
+        "captured_at": { "$ref": "#/$defs/timestamp" }
+      }
+    },
+    "check_ins": {
+      "description": "Moments the customer proved they were at home. The first is the home pin.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["at", "latitude", "longitude", "accuracy_m", "distance_to_home_m", "same_device_as_first"],
+        "properties": {
+          "at": { "$ref": "#/$defs/timestamp" },
+          "latitude": { "$ref": "#/$defs/latitude" },
+          "longitude": { "$ref": "#/$defs/longitude" },
+          "accuracy_m": { "type": "number", "minimum": 0 },
+          "distance_to_home_m": { "type": "number", "minimum": 0 },
+          "same_device_as_first": { "type": "boolean", "description": "Device identifiers themselves are never included." }
+        }
+      }
+    },
+    "evidence": {
+      "description": "Uploaded files. Hashes stay after the files are deleted at the end of retention.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "kind", "content_type", "size_bytes", "sha256", "uploaded_at"],
+        "properties": {
+          "id": { "$ref": "#/$defs/uuid" },
+          "kind": { "enum": ["gate_photo", "utility_bill"] },
+          "content_type": { "enum": ["image/jpeg", "image/png", "image/webp", "image/heic", "application/pdf"] },
+          "size_bytes": { "type": "integer", "minimum": 1 },
+          "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "uploaded_at": { "$ref": "#/$defs/timestamp" },
+          "captured_at": { "$ref": "#/$defs/timestamp", "description": "From the file's own metadata, when present." },
+          "captured_latitude": { "$ref": "#/$defs/latitude" },
+          "captured_longitude": { "$ref": "#/$defs/longitude" },
+          "captured_distance_to_home_m": { "type": "number", "minimum": 0 },
+          "deleted_at": { "$ref": "#/$defs/timestamp" },
+          "download_url": { "type": "string", "description": "Absent once the file is deleted." }
+        }
+      }
+    },
+    "nipost": {
+      "description": "NIPOST's postcode register for the home pin, looked up with the lender's own key. A postcode identifies a building, not who lives there.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "checked_at", "is_mock"],
+      "properties": {
+        "status": { "enum": ["found", "no_building_nearby", "unavailable", "not_configured"] },
+        "checked_at": { "$ref": "#/$defs/timestamp" },
+        "postcode": { "type": "string", "pattern": "^[A-Z]{2}-\\d{2}-[A-Z0-9]{3}-[A-Z]{2}-\\d{2}$" },
+        "reverse_confidence": { "type": "string" },
+        "distance_m": { "type": "number", "minimum": 0 },
+        "valid": { "type": "boolean" },
+        "building_use": { "type": "string" },
+        "error_code": { "type": "string" },
+        "is_mock": { "type": "boolean" }
+      }
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["verdict", "confidence", "reasons"],
+      "properties": {
+        "verdict": { "enum": ["verified", "needs_review", "not_verified"] },
+        "confidence": { "enum": ["high", "medium", "low"] },
+        "reasons": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["code", "kind", "severe", "description"],
+            "properties": {
+              "code": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" },
+              "kind": { "enum": ["positive", "red_flag", "info"] },
+              "severe": { "type": "boolean" },
+              "description": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "audit_trail": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["at", "type", "actor"],
+        "properties": {
+          "at": { "$ref": "#/$defs/timestamp" },
+          "type": { "type": "string" },
+          "actor": { "enum": ["lender", "customer", "system", "user"] },
+          "detail": { "type": "string" }
+        }
+      }
+    },
+    "notes": { "type": "array", "items": { "type": "string" } }
+  },
+  "$defs": {
+    "timestamp": { "type": "string", "format": "date-time" },
+    "uuid": { "type": "string", "format": "uuid" },
+    "latitude": { "type": "number", "minimum": -90, "maximum": 90 },
+    "longitude": { "type": "number", "minimum": -180, "maximum": 180 }
+  }
+}

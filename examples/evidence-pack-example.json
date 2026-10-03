@@ -1,0 +1,78 @@
+{
+  "schema": "gateproof.evidence-pack/v1",
+  "generated_at": "2026-10-06T08:15:00+00:00",
+  "environment": "sandbox",
+  "lender": { "name": "Example Lender (sandbox)" },
+  "verification": {
+    "id": "01a0fe9c-66a0-74cc-a245-d4c08ea56fd6",
+    "external_ref": "loan-0001",
+    "status": "completed",
+    "claimed_address": "12 Example Street, Ikeja, Lagos",
+    "customer_phone": "+2348012345678",
+    "created_at": "2026-10-05T18:55:00+00:00",
+    "expires_at": "2026-10-08T18:55:00+00:00",
+    "completed_at": "2026-10-06T06:02:41+00:00"
+  },
+  "consent": {
+    "version": "consent-v1",
+    "given_at": "2026-10-05T19:01:12+00:00",
+    "ip_address": "198.51.100.23",
+    "user_agent": "Mozilla/5.0 (Linux; Android 13) Chrome/128.0 Mobile"
+  },
+  "home": {
+    "latitude": 6.6018,
+    "longitude": 3.3515,
+    "accuracy_m": 12,
+    "description": "Blue gate, two houses after the church",
+    "captured_at": "2026-10-05T19:02:30+00:00"
+  },
+  "check_ins": [
+    { "at": "2026-10-05T19:02:30+00:00", "latitude": 6.6018, "longitude": 3.3515, "accuracy_m": 12, "distance_to_home_m": 0, "same_device_as_first": true },
+    { "at": "2026-10-06T06:02:41+00:00", "latitude": 6.60186, "longitude": 3.35154, "accuracy_m": 9, "distance_to_home_m": 7.9, "same_device_as_first": true }
+  ],
+  "evidence": [
+    {
+      "id": "01a0ffcb-efad-7754-bb85-037bfa70e847",
+      "kind": "gate_photo",
+      "content_type": "image/jpeg",
+      "size_bytes": 1843201,
+      "sha256": "3f1c9a0d6b2e4f8a7c5d1e0b9a8f7e6d5c4b3a2918f7e6d5c4b3a29180f7e6d5",
+      "uploaded_at": "2026-10-05T19:02:30+00:00",
+      "captured_at": "2026-10-05T19:01:58+00:00",
+      "download_url": "/v1/verifications/01a0fe9c-66a0-74cc-a245-d4c08ea56fd6/files/01a0ffcb-efad-7754-bb85-037bfa70e847"
+    }
+  ],
+  "nipost": {
+    "status": "found",
+    "checked_at": "2026-10-05T19:03:10+00:00",
+    "postcode": "LA-11-W06-TC-10",
+    "reverse_confidence": "high",
+    "distance_m": 12.5,
+    "valid": true,
+    "building_use": "residential",
+    "is_mock": true
+  },
+  "result": {
+    "verdict": "verified",
+    "confidence": "high",
+    "reasons": [
+      { "code": "CHECKIN_NEAR_HOME", "kind": "positive", "severe": false, "description": "Every check-in was made at the pinned home, with a precise GPS fix." },
+      { "code": "CHECKINS_SEPARATED", "kind": "positive", "severe": false, "description": "The customer was at home in the evening and in the morning, hours apart." },
+      { "code": "PHOTO_FRESH", "kind": "positive", "severe": false, "description": "The gate photo was taken minutes before it was uploaded." },
+      { "code": "NIPOST_BUILDING_RESIDENTIAL", "kind": "positive", "severe": false, "description": "NIPOST's postcode register lists a residential or mixed-use building at the pin." }
+    ]
+  },
+  "audit_trail": [
+    { "at": "2026-10-05T18:55:00+00:00", "type": "verification.created", "actor": "lender" },
+    { "at": "2026-10-05T19:01:12+00:00", "type": "verification.consented", "actor": "customer", "detail": "consent_version=consent-v1" },
+    { "at": "2026-10-05T19:02:30+00:00", "type": "verification.home_submitted", "actor": "customer" },
+    { "at": "2026-10-05T19:03:10+00:00", "type": "nipost.checked", "actor": "system", "detail": "status=Found" },
+    { "at": "2026-10-06T06:02:41+00:00", "type": "verification.checked_in", "actor": "customer" },
+    { "at": "2026-10-06T06:02:41+00:00", "type": "verification.completed", "actor": "system", "detail": "verdict=Verified" }
+  ],
+  "notes": [
+    "Times are in UTC.",
+    "A NIPOST postcode identifies a building, not who lives there. NIPOST data is one signal among several and is not a NIPOST verification.",
+    "Photo and bill files are deleted after the retention period; their hashes remain here so copies can still be checked."
+  ]
+}
